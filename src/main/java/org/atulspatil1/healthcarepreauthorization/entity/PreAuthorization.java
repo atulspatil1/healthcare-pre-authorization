@@ -1,7 +1,10 @@
 package org.atulspatil1.healthcarepreauthorization.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.atulspatil1.healthcarepreauthorization.enums.PreAuthStatus;
 import org.atulspatil1.healthcarepreauthorization.enums.Priority;
@@ -13,6 +16,9 @@ import java.util.List;
 @Entity
 @Table(name = "pre_authorization")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PreAuthorization {
 
     @Id
