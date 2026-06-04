@@ -1,11 +1,17 @@
 package org.atulspatil1.healthcarepreauthorization.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.atulspatil1.healthcarepreauthorization.enums.NetworkStatus;
 
 import java.time.LocalDateTime;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProviderResponseDto {
     private Long id;
     private String providerCode;

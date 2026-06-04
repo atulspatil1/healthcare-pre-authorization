@@ -1,20 +1,37 @@
 package org.atulspatil1.healthcarepreauthorization.controller;
 
-import org.atulspatil1.healthcarepreauthorization.entity.Provider;
+import lombok.RequiredArgsConstructor;
+import org.atulspatil1.healthcarepreauthorization.dto.ProviderRequestDto;
+import org.atulspatil1.healthcarepreauthorization.dto.ProviderResponseDto;
+import org.atulspatil1.healthcarepreauthorization.service.ProviderService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1")
+@RequiredArgsConstructor
 public class ProviderController {
 
+    private final ProviderService providerService;
+
     @PostMapping("/providers")
-    public ResponseEntity<Provider> registerProvider(@RequestBody Provider provider) {
-        return null;
+    public ResponseEntity<ProviderResponseDto> registerProvider(@RequestBody ProviderRequestDto request) {
+        ProviderResponseDto response = providerService.registerProvider(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/providers/{id}")
-    public ResponseEntity<Provider> getProvider(@PathVariable Long id) {
-        return null;
+    public ResponseEntity<ProviderResponseDto> getProvider(@PathVariable Long id) {
+        ProviderResponseDto response = providerService.getProviderById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/providers")
+    public ResponseEntity<List<ProviderResponseDto>> lookupByCity(@RequestParam String city) {
+        List<ProviderResponseDto> response = providerService.lookupByCity(city);
+        return ResponseEntity.ok(response);
     }
 }
