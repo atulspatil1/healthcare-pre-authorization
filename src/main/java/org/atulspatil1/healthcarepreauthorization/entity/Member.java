@@ -1,8 +1,7 @@
 package org.atulspatil1.healthcarepreauthorization.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 import org.atulspatil1.healthcarepreauthorization.enums.Gender;
 import org.atulspatil1.healthcarepreauthorization.enums.PolicyStatus;
 
@@ -13,6 +12,9 @@ import java.util.List;
 @Entity
 @Table(name = "member")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Member {
 
     @Id
