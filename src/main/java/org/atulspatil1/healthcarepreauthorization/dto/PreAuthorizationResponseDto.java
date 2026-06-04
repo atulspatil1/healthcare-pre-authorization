@@ -1,6 +1,9 @@
 package org.atulspatil1.healthcarepreauthorization.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.atulspatil1.healthcarepreauthorization.enums.PreAuthStatus;
 import org.atulspatil1.healthcarepreauthorization.enums.Priority;
 
@@ -8,6 +11,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PreAuthorizationResponseDto {
     private Long id;
     private String requestNumber;
