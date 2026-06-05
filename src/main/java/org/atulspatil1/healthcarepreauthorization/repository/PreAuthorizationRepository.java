@@ -12,4 +12,6 @@ import java.util.Optional;
 public interface PreAuthorizationRepository extends JpaRepository<PreAuthorization, Long> {
     Optional<PreAuthorization> findByRequestNumber(String requestNumber);
     List<PreAuthorization> findByStatus(PreAuthStatus status);
+    List<PreAuthorization> findByProviderId(Long providerId);
+    List<PreAuthorization> findByStatusAndProviderId(PreAuthStatus status, Long providerId);
 }

@@ -3,7 +3,6 @@ package org.atulspatil1.healthcarepreauthorization.controller;
 import lombok.RequiredArgsConstructor;
 import org.atulspatil1.healthcarepreauthorization.dto.PreAuthorizationRequestDto;
 import org.atulspatil1.healthcarepreauthorization.dto.PreAuthorizationResponseDto;
-import org.atulspatil1.healthcarepreauthorization.entity.Document;
 import org.atulspatil1.healthcarepreauthorization.service.PreAuthorizationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,9 +35,9 @@ public class PreAuthorizationController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/preauth/{id}/review")
-    public ResponseEntity<PreAuthorizationResponseDto> submitPreAuthRequestReview(@PathVariable Long id) {
-        PreAuthorizationResponseDto response = preAuthorizationService.submitPreAuthRequestReview(id);
+    @PatchMapping("/preauth/{id}/start-review")
+    public ResponseEntity<PreAuthorizationResponseDto> startReview(@PathVariable Long id) {
+        PreAuthorizationResponseDto response = preAuthorizationService.startReview(id);
         return ResponseEntity.ok(response);
     }
 
@@ -54,19 +53,16 @@ public class PreAuthorizationController {
         return ResponseEntity.ok(response);
     }
 
-    // Document and history methods left unimplemented for now
+    @GetMapping("/preauth")
+    public ResponseEntity<List<PreAuthorizationResponseDto>> getPreAuthRequests(
+            @RequestParam(required = false) org.atulspatil1.healthcarepreauthorization.enums.PreAuthStatus status,
+            @RequestParam(required = false) Long providerId) {
+        List<PreAuthorizationResponseDto> response = preAuthorizationService.getPreAuthRequests(status, providerId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/preauth/{id}/history")
-    public ResponseEntity<Object> getPreAuthRequestHistory(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
-    }
-
-    @PostMapping("/preauth/{id}/documents")
-    public ResponseEntity<Document> uploadPreAuthRequestDocuments(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
-    }
-
-    @GetMapping("/preauth/{id}/documents")
-    public ResponseEntity<List<Document>> getPreAuthRequestDocuments(@PathVariable Long id) {
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+    public ResponseEntity<List<org.atulspatil1.healthcarepreauthorization.entity.Review>> getPreAuthRequestHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(preAuthorizationService.getPreAuthRequestHistory(id));
     }
 }

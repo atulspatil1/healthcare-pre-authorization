@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -25,6 +26,7 @@ public class PreAuthorizationService {
     private final PreAuthorizationRepository preAuthorizationRepository;
     private final MemberRepository memberRepository;
     private final ProviderRepository providerRepository;
+    private final org.atulspatil1.healthcarepreauthorization.repository.ReviewRepository reviewRepository;
 
     @Transactional
     public PreAuthorizationResponseDto createPreAuthRequest(PreAuthorizationRequestDto requestDto) {
@@ -72,12 +74,13 @@ public class PreAuthorizationService {
         return mapToResponseDto(preAuthorizationRepository.save(preAuth));
     }
 
+
     @Transactional
-    public PreAuthorizationResponseDto submitPreAuthRequestReview(Long id) {
+    public PreAuthorizationResponseDto startReview(Long id) {
         PreAuthorization preAuth = getPreAuthorizationEntity(id);
         
         if (preAuth.getStatus() != PreAuthStatus.SUBMITTED && preAuth.getStatus() != PreAuthStatus.ADDITIONAL_INFO_REQUIRED) {
-            throw new IllegalStateException("Request cannot be reviewed from current status: " + preAuth.getStatus());
+            throw new IllegalStateException("Request cannot be picked up for review from current status: " + preAuth.getStatus());
         }
         
         preAuth.setStatus(PreAuthStatus.UNDER_REVIEW);
@@ -116,6 +119,27 @@ public class PreAuthorizationService {
 
     public PreAuthorizationResponseDto getPreAuthRequestById(Long id) {
         return mapToResponseDto(getPreAuthorizationEntity(id));
+    }
+
+    public List<PreAuthorizationResponseDto> getPreAuthRequests(PreAuthStatus status, Long providerId) {
+        List<PreAuthorization> requests;
+        if (status != null && providerId != null) {
+            requests = preAuthorizationRepository.findByStatusAndProviderId(status, providerId);
+        } else if (status != null) {
+            requests = preAuthorizationRepository.findByStatus(status);
+        } else if (providerId != null) {
+            requests = preAuthorizationRepository.findByProviderId(providerId);
+        } else {
+            requests = preAuthorizationRepository.findAll();
+        }
+        return requests.stream().map(this::mapToResponseDto).toList();
+    }
+
+    public List<org.atulspatil1.healthcarepreauthorization.entity.Review> getPreAuthRequestHistory(Long id) {
+        if (!preAuthorizationRepository.existsById(id)) {
+            throw new ResourceNotFoundException("PreAuthorization request not found with id: " + id);
+        }
+        return reviewRepository.findByPreAuthorizationId(id);
     }
 
     private PreAuthorization getPreAuthorizationEntity(Long id) {
