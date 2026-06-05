@@ -19,6 +19,7 @@ public class Review {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pre_auth_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private PreAuthorization preAuthorization;
 
     @Column(name = "reviewer_id", nullable = false)
