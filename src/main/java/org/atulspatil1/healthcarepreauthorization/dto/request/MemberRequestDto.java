@@ -6,7 +6,14 @@ import org.atulspatil1.healthcarepreauthorization.enums.PolicyStatus;
 
 import java.time.LocalDate;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MemberRequestDto {
     private String name;
     private LocalDate dob;
