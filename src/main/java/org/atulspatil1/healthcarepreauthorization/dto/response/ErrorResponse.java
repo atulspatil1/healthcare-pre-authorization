@@ -1,4 +1,4 @@
-package org.atulspatil1.healthcarepreauthorization.dto;
+package org.atulspatil1.healthcarepreauthorization.dto.response;
 
 import lombok.Builder;
 import lombok.Data;

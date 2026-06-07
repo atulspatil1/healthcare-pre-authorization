@@ -1,8 +1,8 @@
 package org.atulspatil1.healthcarepreauthorization.service;
 
 import lombok.RequiredArgsConstructor;
-import org.atulspatil1.healthcarepreauthorization.dto.PreAuthorizationRequestDto;
-import org.atulspatil1.healthcarepreauthorization.dto.PreAuthorizationResponseDto;
+import org.atulspatil1.healthcarepreauthorization.dto.request.PreAuthorizationRequestDto;
+import org.atulspatil1.healthcarepreauthorization.dto.response.PreAuthorizationResponseDto;
 import org.atulspatil1.healthcarepreauthorization.entity.Member;
 import org.atulspatil1.healthcarepreauthorization.entity.PreAuthorization;
 import org.atulspatil1.healthcarepreauthorization.entity.Provider;

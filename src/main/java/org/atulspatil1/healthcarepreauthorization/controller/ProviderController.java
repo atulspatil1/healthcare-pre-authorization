@@ -1,8 +1,8 @@
 package org.atulspatil1.healthcarepreauthorization.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.atulspatil1.healthcarepreauthorization.dto.ProviderRequestDto;
-import org.atulspatil1.healthcarepreauthorization.dto.ProviderResponseDto;
+import org.atulspatil1.healthcarepreauthorization.dto.request.ProviderRequestDto;
+import org.atulspatil1.healthcarepreauthorization.dto.response.ProviderResponseDto;
 import org.atulspatil1.healthcarepreauthorization.service.ProviderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

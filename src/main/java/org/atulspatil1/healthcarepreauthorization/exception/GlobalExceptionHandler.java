@@ -1,7 +1,7 @@
 package org.atulspatil1.healthcarepreauthorization.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.atulspatil1.healthcarepreauthorization.dto.ErrorResponse;
+import org.atulspatil1.healthcarepreauthorization.dto.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

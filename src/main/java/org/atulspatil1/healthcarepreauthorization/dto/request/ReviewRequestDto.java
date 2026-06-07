@@ -1,4 +1,4 @@
-package org.atulspatil1.healthcarepreauthorization.dto;
+package org.atulspatil1.healthcarepreauthorization.dto.request;
 
 import lombok.Data;
 import org.atulspatil1.healthcarepreauthorization.enums.Decision;
