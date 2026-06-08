@@ -1,5 +1,6 @@
 package org.atulspatil1.healthcarepreauthorization.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.atulspatil1.healthcarepreauthorization.dto.request.MemberRequestDto;
 import org.atulspatil1.healthcarepreauthorization.dto.response.MemberResponseDto;
@@ -16,7 +17,7 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping("/members")
-    public ResponseEntity<MemberResponseDto> registerMember(@RequestBody MemberRequestDto memberRequest) {
+    public ResponseEntity<MemberResponseDto> registerMember(@Valid @RequestBody MemberRequestDto memberRequest) {
         MemberResponseDto response = memberService.registerMember(memberRequest);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }

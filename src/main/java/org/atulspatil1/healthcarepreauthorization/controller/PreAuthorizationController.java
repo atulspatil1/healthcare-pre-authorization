@@ -1,5 +1,6 @@
 package org.atulspatil1.healthcarepreauthorization.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.atulspatil1.healthcarepreauthorization.dto.request.PreAuthorizationRequestDto;
 import org.atulspatil1.healthcarepreauthorization.dto.response.PreAuthorizationResponseDto;
@@ -18,7 +19,7 @@ public class PreAuthorizationController {
     private final PreAuthorizationService preAuthorizationService;
 
     @PostMapping("/preauth")
-    public ResponseEntity<PreAuthorizationResponseDto> createPreAuthRequest(@RequestBody PreAuthorizationRequestDto requestDto) {
+    public ResponseEntity<PreAuthorizationResponseDto> createPreAuthRequest(@Valid @RequestBody PreAuthorizationRequestDto requestDto) {
         PreAuthorizationResponseDto response = preAuthorizationService.createPreAuthRequest(requestDto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
