@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.atulspatil1.healthcarepreauthorization.dto.request.PreAuthorizationRequestDto;
 import org.atulspatil1.healthcarepreauthorization.dto.response.PreAuthorizationResponseDto;
+import org.atulspatil1.healthcarepreauthorization.dto.response.ReviewResponseDto;
 import org.atulspatil1.healthcarepreauthorization.service.PreAuthorizationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +64,7 @@ public class PreAuthorizationController {
     }
 
     @GetMapping("/preauth/{id}/history")
-    public ResponseEntity<List<org.atulspatil1.healthcarepreauthorization.entity.Review>> getPreAuthRequestHistory(@PathVariable Long id) {
+    public ResponseEntity<List<ReviewResponseDto>> getPreAuthRequestHistory(@PathVariable Long id) {
         return ResponseEntity.ok(preAuthorizationService.getPreAuthRequestHistory(id));
     }
 }

@@ -3,8 +3,10 @@ package org.atulspatil1.healthcarepreauthorization.service;
 import lombok.RequiredArgsConstructor;
 import org.atulspatil1.healthcarepreauthorization.dto.request.PreAuthorizationRequestDto;
 import org.atulspatil1.healthcarepreauthorization.dto.response.PreAuthorizationResponseDto;
+import org.atulspatil1.healthcarepreauthorization.dto.response.ReviewResponseDto;
 import org.atulspatil1.healthcarepreauthorization.entity.Member;
 import org.atulspatil1.healthcarepreauthorization.entity.PreAuthorization;
+import org.atulspatil1.healthcarepreauthorization.entity.Review;
 import org.atulspatil1.healthcarepreauthorization.entity.Provider;
 import org.atulspatil1.healthcarepreauthorization.enums.PreAuthStatus;
 import org.atulspatil1.healthcarepreauthorization.enums.Priority;
@@ -135,11 +137,14 @@ public class PreAuthorizationService {
         return requests.stream().map(this::mapToResponseDto).toList();
     }
 
-    public List<org.atulspatil1.healthcarepreauthorization.entity.Review> getPreAuthRequestHistory(Long id) {
+    public List<ReviewResponseDto> getPreAuthRequestHistory(Long id) {
         if (!preAuthorizationRepository.existsById(id)) {
             throw new ResourceNotFoundException("PreAuthorization request not found with id: " + id);
         }
-        return reviewRepository.findByPreAuthorizationId(id);
+        return reviewRepository.findByPreAuthorizationId(id)
+                .stream()
+                .map(this::mapToReviewResponseDto)
+                .toList();
     }
 
     private PreAuthorization getPreAuthorizationEntity(Long id) {
@@ -163,6 +168,18 @@ public class PreAuthorizationService {
                 .slaDeadline(preAuth.getSlaDeadline())
                 .createdAt(preAuth.getCreatedAt())
                 .updatedAt(preAuth.getUpdatedAt())
+                .build();
+    }
+
+    private ReviewResponseDto mapToReviewResponseDto(Review review) {
+        return ReviewResponseDto.builder()
+                .id(review.getId())
+                .preAuthorizationId(review.getPreAuthorization().getId())
+                .reviewerId(review.getReviewerId())
+                .decision(review.getDecision())
+                .approvedAmount(review.getApprovedAmount())
+                .comments(review.getComments())
+                .reviewDate(review.getReviewDate())
                 .build();
     }
 }
