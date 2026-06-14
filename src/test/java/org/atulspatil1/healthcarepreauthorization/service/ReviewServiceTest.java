@@ -7,6 +7,7 @@ import org.atulspatil1.healthcarepreauthorization.entity.PreAuthorization;
 import org.atulspatil1.healthcarepreauthorization.entity.Provider;
 import org.atulspatil1.healthcarepreauthorization.entity.Review;
 import org.atulspatil1.healthcarepreauthorization.enums.Decision;
+import org.atulspatil1.healthcarepreauthorization.enums.PreAuthEvent;
 import org.atulspatil1.healthcarepreauthorization.enums.PreAuthStatus;
 import org.atulspatil1.healthcarepreauthorization.enums.Priority;
 import org.atulspatil1.healthcarepreauthorization.exception.ResourceNotFoundException;
@@ -26,6 +27,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +38,9 @@ public class ReviewServiceTest {
 
     @Mock
     private PreAuthorizationRepository preAuthorizationRepository;
+
+    @Mock
+    private StateMachineService stateMachineService;
 
     @InjectMocks
     private ReviewService reviewService;
@@ -66,6 +71,8 @@ public class ReviewServiceTest {
         requestDto.setComments("Looks good");
 
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.APPROVE)))
+                .thenReturn(PreAuthStatus.APPROVED);
         when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> inv.getArgument(0));
         when(preAuthorizationRepository.save(any(PreAuthorization.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -88,6 +95,8 @@ public class ReviewServiceTest {
         requestDto.setComments("Partial approval");
 
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.APPROVE)))
+                .thenReturn(PreAuthStatus.APPROVED);
         when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> inv.getArgument(0));
         when(preAuthorizationRepository.save(any(PreAuthorization.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -105,6 +114,8 @@ public class ReviewServiceTest {
         requestDto.setComments("Does not meet criteria");
 
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.DENY)))
+                .thenReturn(PreAuthStatus.DENIED);
         when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> inv.getArgument(0));
         when(preAuthorizationRepository.save(any(PreAuthorization.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -121,6 +132,8 @@ public class ReviewServiceTest {
         requestDto.setComments("Need more documents");
 
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.REQUEST_INFO)))
+                .thenReturn(PreAuthStatus.ADDITIONAL_INFO_REQUIRED);
         when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> inv.getArgument(0));
         when(preAuthorizationRepository.save(any(PreAuthorization.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -138,6 +151,8 @@ public class ReviewServiceTest {
         requestDto.setComments("Appeal accepted");
 
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.APPROVE)))
+                .thenReturn(PreAuthStatus.APPROVED);
         when(reviewRepository.save(any(Review.class))).thenAnswer(inv -> inv.getArgument(0));
         when(preAuthorizationRepository.save(any(PreAuthorization.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -154,6 +169,8 @@ public class ReviewServiceTest {
         requestDto.setComments("Invalid");
 
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.APPROVE)))
+                .thenThrow(new IllegalStateException("Cannot APPROVE a request in status DRAFT"));
 
         assertThrows(IllegalStateException.class, () ->
                 reviewService.submitReview(1L, requestDto, "reviewer1"));
