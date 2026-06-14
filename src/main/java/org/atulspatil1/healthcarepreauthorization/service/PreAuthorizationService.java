@@ -1,6 +1,7 @@
 package org.atulspatil1.healthcarepreauthorization.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.atulspatil1.healthcarepreauthorization.dto.request.PreAuthorizationRequestDto;
 import org.atulspatil1.healthcarepreauthorization.dto.response.PreAuthorizationResponseDto;
 import org.atulspatil1.healthcarepreauthorization.dto.response.ReviewResponseDto;
@@ -8,12 +9,14 @@ import org.atulspatil1.healthcarepreauthorization.entity.Member;
 import org.atulspatil1.healthcarepreauthorization.entity.PreAuthorization;
 import org.atulspatil1.healthcarepreauthorization.entity.Review;
 import org.atulspatil1.healthcarepreauthorization.entity.Provider;
+import org.atulspatil1.healthcarepreauthorization.enums.PreAuthEvent;
 import org.atulspatil1.healthcarepreauthorization.enums.PreAuthStatus;
 import org.atulspatil1.healthcarepreauthorization.enums.Priority;
 import org.atulspatil1.healthcarepreauthorization.exception.ResourceNotFoundException;
 import org.atulspatil1.healthcarepreauthorization.repository.MemberRepository;
 import org.atulspatil1.healthcarepreauthorization.repository.PreAuthorizationRepository;
 import org.atulspatil1.healthcarepreauthorization.repository.ProviderRepository;
+import org.atulspatil1.healthcarepreauthorization.repository.ReviewRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PreAuthorizationService {
@@ -28,7 +32,8 @@ public class PreAuthorizationService {
     private final PreAuthorizationRepository preAuthorizationRepository;
     private final MemberRepository memberRepository;
     private final ProviderRepository providerRepository;
-    private final org.atulspatil1.healthcarepreauthorization.repository.ReviewRepository reviewRepository;
+    private final ReviewRepository reviewRepository;
+    private final StateMachineService stateMachineService;
 
     @Transactional
     public PreAuthorizationResponseDto createPreAuthRequest(PreAuthorizationRequestDto requestDto) {
@@ -65,57 +70,55 @@ public class PreAuthorizationService {
     @Transactional
     public PreAuthorizationResponseDto submitPreAuthRequestDraft(Long id) {
         PreAuthorization preAuth = getPreAuthorizationEntity(id);
-        
-        if (preAuth.getStatus() != PreAuthStatus.DRAFT) {
-            throw new IllegalStateException("Only DRAFT requests can be submitted. Current status: " + preAuth.getStatus());
-        }
-        
-        preAuth.setStatus(PreAuthStatus.SUBMITTED);
+        PreAuthStatus newStatus = stateMachineService.sendEvent(preAuth, PreAuthEvent.SUBMIT);
+
+        preAuth.setStatus(newStatus);
         preAuth.setUpdatedAt(LocalDateTime.now());
-        
+
         return mapToResponseDto(preAuthorizationRepository.save(preAuth));
     }
-
 
     @Transactional
     public PreAuthorizationResponseDto startReview(Long id) {
         PreAuthorization preAuth = getPreAuthorizationEntity(id);
-        
-        if (preAuth.getStatus() != PreAuthStatus.SUBMITTED && preAuth.getStatus() != PreAuthStatus.ADDITIONAL_INFO_REQUIRED) {
-            throw new IllegalStateException("Request cannot be picked up for review from current status: " + preAuth.getStatus());
-        }
-        
-        preAuth.setStatus(PreAuthStatus.UNDER_REVIEW);
+        PreAuthStatus newStatus = stateMachineService.sendEvent(preAuth, PreAuthEvent.START_REVIEW);
+
+        preAuth.setStatus(newStatus);
         preAuth.setUpdatedAt(LocalDateTime.now());
-        
+
         return mapToResponseDto(preAuthorizationRepository.save(preAuth));
     }
 
     @Transactional
     public PreAuthorizationResponseDto resubmitPreAuthRequest(Long id) {
         PreAuthorization preAuth = getPreAuthorizationEntity(id);
-        
-        if (preAuth.getStatus() != PreAuthStatus.ADDITIONAL_INFO_REQUIRED) {
-            throw new IllegalStateException("Only requests requiring additional info can be resubmitted. Current status: " + preAuth.getStatus());
-        }
-        
-        preAuth.setStatus(PreAuthStatus.UNDER_REVIEW);
+        PreAuthStatus newStatus = stateMachineService.sendEvent(preAuth, PreAuthEvent.RESUBMIT);
+
+        preAuth.setStatus(newStatus);
         preAuth.setUpdatedAt(LocalDateTime.now());
-        
+
         return mapToResponseDto(preAuthorizationRepository.save(preAuth));
     }
 
     @Transactional
     public PreAuthorizationResponseDto submitPreAuthRequestAppeal(Long id) {
         PreAuthorization preAuth = getPreAuthorizationEntity(id);
-        
-        if (preAuth.getStatus() != PreAuthStatus.DENIED) {
-            throw new IllegalStateException("Only DENIED requests can be appealed. Current status: " + preAuth.getStatus());
-        }
-        
-        preAuth.setStatus(PreAuthStatus.APPEAL_REVIEW);
+        PreAuthStatus newStatus = stateMachineService.sendEvent(preAuth, PreAuthEvent.APPEAL);
+
+        preAuth.setStatus(newStatus);
         preAuth.setUpdatedAt(LocalDateTime.now());
-        
+
+        return mapToResponseDto(preAuthorizationRepository.save(preAuth));
+    }
+
+    @Transactional
+    public PreAuthorizationResponseDto closePreAuthRequest(Long id) {
+        PreAuthorization preAuth = getPreAuthorizationEntity(id);
+        PreAuthStatus newStatus = stateMachineService.sendEvent(preAuth, PreAuthEvent.CLOSE);
+
+        preAuth.setStatus(newStatus);
+        preAuth.setUpdatedAt(LocalDateTime.now());
+
         return mapToResponseDto(preAuthorizationRepository.save(preAuth));
     }
 
@@ -147,7 +150,9 @@ public class PreAuthorizationService {
                 .toList();
     }
 
-    private PreAuthorization getPreAuthorizationEntity(Long id) {
+    // ─── Package-private for use by scheduled tasks ───────────────────
+
+    PreAuthorization getPreAuthorizationEntity(Long id) {
         return preAuthorizationRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("PreAuthorization request not found with id: " + id));
     }

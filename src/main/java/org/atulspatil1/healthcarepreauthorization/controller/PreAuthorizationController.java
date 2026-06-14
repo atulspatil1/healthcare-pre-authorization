@@ -67,4 +67,10 @@ public class PreAuthorizationController {
     public ResponseEntity<List<ReviewResponseDto>> getPreAuthRequestHistory(@PathVariable Long id) {
         return ResponseEntity.ok(preAuthorizationService.getPreAuthRequestHistory(id));
     }
+
+    @PatchMapping("/preauth/{id}/close")
+    public ResponseEntity<PreAuthorizationResponseDto> closePreAuthRequest(@PathVariable Long id) {
+        PreAuthorizationResponseDto response = preAuthorizationService.closePreAuthRequest(id);
+        return ResponseEntity.ok(response);
+    }
 }

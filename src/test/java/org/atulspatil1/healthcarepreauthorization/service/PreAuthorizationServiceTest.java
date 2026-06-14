@@ -2,10 +2,11 @@ package org.atulspatil1.healthcarepreauthorization.service;
 
 import org.atulspatil1.healthcarepreauthorization.dto.request.PreAuthorizationRequestDto;
 import org.atulspatil1.healthcarepreauthorization.dto.response.PreAuthorizationResponseDto;
+import org.atulspatil1.healthcarepreauthorization.dto.response.ReviewResponseDto;
 import org.atulspatil1.healthcarepreauthorization.entity.Member;
 import org.atulspatil1.healthcarepreauthorization.entity.PreAuthorization;
 import org.atulspatil1.healthcarepreauthorization.entity.Provider;
-import org.atulspatil1.healthcarepreauthorization.entity.Review;
+import org.atulspatil1.healthcarepreauthorization.enums.PreAuthEvent;
 import org.atulspatil1.healthcarepreauthorization.enums.PreAuthStatus;
 import org.atulspatil1.healthcarepreauthorization.enums.Priority;
 import org.atulspatil1.healthcarepreauthorization.exception.ResourceNotFoundException;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +46,9 @@ public class PreAuthorizationServiceTest {
 
     @Mock
     private ReviewRepository reviewRepository;
+
+    @Mock
+    private StateMachineService stateMachineService;
 
     @InjectMocks
     private PreAuthorizationService preAuthorizationService;
@@ -156,17 +161,22 @@ public class PreAuthorizationServiceTest {
     public void testSubmitDraft_Success() {
         PreAuthorization preAuth = createPreAuth(PreAuthStatus.DRAFT);
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.SUBMIT)))
+                .thenReturn(PreAuthStatus.SUBMITTED);
         when(preAuthorizationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         PreAuthorizationResponseDto response = preAuthorizationService.submitPreAuthRequestDraft(1L);
 
         assertThat(response.getStatus()).isEqualTo(PreAuthStatus.SUBMITTED);
+        verify(stateMachineService).sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.SUBMIT));
     }
 
     @Test
     public void testSubmitDraft_InvalidState() {
         PreAuthorization preAuth = createPreAuth(PreAuthStatus.APPROVED);
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.SUBMIT)))
+                .thenThrow(new IllegalStateException("Cannot SUBMIT a request in status APPROVED"));
 
         assertThrows(IllegalStateException.class, () ->
                 preAuthorizationService.submitPreAuthRequestDraft(1L));
@@ -178,17 +188,8 @@ public class PreAuthorizationServiceTest {
     public void testStartReview_FromSubmitted() {
         PreAuthorization preAuth = createPreAuth(PreAuthStatus.SUBMITTED);
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
-        when(preAuthorizationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        PreAuthorizationResponseDto response = preAuthorizationService.startReview(1L);
-
-        assertThat(response.getStatus()).isEqualTo(PreAuthStatus.UNDER_REVIEW);
-    }
-
-    @Test
-    public void testStartReview_FromAdditionalInfoRequired() {
-        PreAuthorization preAuth = createPreAuth(PreAuthStatus.ADDITIONAL_INFO_REQUIRED);
-        when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.START_REVIEW)))
+                .thenReturn(PreAuthStatus.UNDER_REVIEW);
         when(preAuthorizationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         PreAuthorizationResponseDto response = preAuthorizationService.startReview(1L);
@@ -200,6 +201,8 @@ public class PreAuthorizationServiceTest {
     public void testStartReview_InvalidState() {
         PreAuthorization preAuth = createPreAuth(PreAuthStatus.DRAFT);
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.START_REVIEW)))
+                .thenThrow(new IllegalStateException("Cannot START_REVIEW a request in status DRAFT"));
 
         assertThrows(IllegalStateException.class, () ->
                 preAuthorizationService.startReview(1L));
@@ -211,6 +214,8 @@ public class PreAuthorizationServiceTest {
     public void testResubmit_Success() {
         PreAuthorization preAuth = createPreAuth(PreAuthStatus.ADDITIONAL_INFO_REQUIRED);
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.RESUBMIT)))
+                .thenReturn(PreAuthStatus.UNDER_REVIEW);
         when(preAuthorizationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         PreAuthorizationResponseDto response = preAuthorizationService.resubmitPreAuthRequest(1L);
@@ -222,6 +227,8 @@ public class PreAuthorizationServiceTest {
     public void testResubmit_InvalidState() {
         PreAuthorization preAuth = createPreAuth(PreAuthStatus.SUBMITTED);
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.RESUBMIT)))
+                .thenThrow(new IllegalStateException("Cannot RESUBMIT a request in status SUBMITTED"));
 
         assertThrows(IllegalStateException.class, () ->
                 preAuthorizationService.resubmitPreAuthRequest(1L));
@@ -233,6 +240,8 @@ public class PreAuthorizationServiceTest {
     public void testAppeal_Success() {
         PreAuthorization preAuth = createPreAuth(PreAuthStatus.DENIED);
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.APPEAL)))
+                .thenReturn(PreAuthStatus.APPEAL_REVIEW);
         when(preAuthorizationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         PreAuthorizationResponseDto response = preAuthorizationService.submitPreAuthRequestAppeal(1L);
@@ -244,6 +253,8 @@ public class PreAuthorizationServiceTest {
     public void testAppeal_InvalidState() {
         PreAuthorization preAuth = createPreAuth(PreAuthStatus.APPROVED);
         when(preAuthorizationRepository.findById(1L)).thenReturn(Optional.of(preAuth));
+        when(stateMachineService.sendEvent(any(PreAuthorization.class), eq(PreAuthEvent.APPEAL)))
+                .thenThrow(new IllegalStateException("Cannot APPEAL a request in status APPROVED"));
 
         assertThrows(IllegalStateException.class, () ->
                 preAuthorizationService.submitPreAuthRequestAppeal(1L));
@@ -323,7 +334,7 @@ public class PreAuthorizationServiceTest {
         when(preAuthorizationRepository.existsById(1L)).thenReturn(true);
         when(reviewRepository.findByPreAuthorizationId(1L)).thenReturn(Collections.emptyList());
 
-        List<Review> result = preAuthorizationService.getPreAuthRequestHistory(1L);
+        List<ReviewResponseDto> result = preAuthorizationService.getPreAuthRequestHistory(1L);
 
         assertThat(result).isEmpty();
     }
