@@ -1,8 +1,8 @@
 package org.atulspatil1.healthcarepreauthorization.service;
 
 import lombok.RequiredArgsConstructor;
-import org.atulspatil1.healthcarepreauthorization.dto.MemberRequestDto;
-import org.atulspatil1.healthcarepreauthorization.dto.MemberResponseDto;
+import org.atulspatil1.healthcarepreauthorization.dto.request.MemberRequestDto;
+import org.atulspatil1.healthcarepreauthorization.dto.response.MemberResponseDto;
 import org.atulspatil1.healthcarepreauthorization.entity.Member;
 import org.atulspatil1.healthcarepreauthorization.exception.ResourceNotFoundException;
 import org.atulspatil1.healthcarepreauthorization.repository.MemberRepository;

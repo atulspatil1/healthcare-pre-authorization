@@ -1,8 +1,9 @@
 package org.atulspatil1.healthcarepreauthorization.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.atulspatil1.healthcarepreauthorization.dto.PreAuthorizationResponseDto;
-import org.atulspatil1.healthcarepreauthorization.dto.ReviewRequestDto;
+import org.atulspatil1.healthcarepreauthorization.dto.response.PreAuthorizationResponseDto;
+import org.atulspatil1.healthcarepreauthorization.dto.request.ReviewRequestDto;
 import org.atulspatil1.healthcarepreauthorization.service.ReviewService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class ReviewController {
     @PatchMapping("/preauth/{id}/review")
     public ResponseEntity<PreAuthorizationResponseDto> submitReview(
             @PathVariable Long id,
-            @RequestBody ReviewRequestDto requestDto,
+            @Valid @RequestBody ReviewRequestDto requestDto,
             @RequestParam(value = "reviewerId", defaultValue = "SYSTEM_REVIEWER") String reviewerId) {
         
         PreAuthorizationResponseDto response = reviewService.submitReview(id, requestDto, reviewerId);

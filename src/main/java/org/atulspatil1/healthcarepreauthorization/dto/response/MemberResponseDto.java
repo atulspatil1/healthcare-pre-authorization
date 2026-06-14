@@ -1,13 +1,22 @@
-package org.atulspatil1.healthcarepreauthorization.dto;
+package org.atulspatil1.healthcarepreauthorization.dto.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.atulspatil1.healthcarepreauthorization.enums.Gender;
 import org.atulspatil1.healthcarepreauthorization.enums.PolicyStatus;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
-public class MemberRequestDto {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class MemberResponseDto {
+    private Long id;
+    private String memberNumber;
     private String name;
     private LocalDate dob;
     private Gender gender;
@@ -15,4 +24,6 @@ public class MemberRequestDto {
     private PolicyStatus policyStatus;
     private String email;
     private String phone;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
